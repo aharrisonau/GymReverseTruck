@@ -76,11 +76,11 @@ class ReverseTruckEnv(gym.Env):
     [pivX,pivY] = [pivX,pivY] + move * 0.1 *pmUnitVector
     
     # rotate the prime mover and adjust the front location
-    pmVect = _2D_Vector_Rotation(pmVect,pmAngleDelta)
+    pmVect = self._2D_Vector_Rotation(pmVect,pmAngleDelta)
     [pmX,pmY] = [pivX,pivY] + pmVect
     
     # rotate the trailer and adjust its back location
-    trlVect = _2D_Vector_Rotation(trlVect,trlAngleDelta)
+    trlVect = self._2D_Vector_Rotation(trlVect,trlAngleDelta)
     [trlX,trlY] = [pivX,pivY] - trlVect
     self.state = pmX,pmY,pivX,pivY,trlX,trlY
 
