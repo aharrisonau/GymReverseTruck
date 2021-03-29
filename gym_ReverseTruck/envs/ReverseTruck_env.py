@@ -66,10 +66,10 @@ class ReverseTruckEnv(gym.Env):
     pmVect=np.array([pmX-pivX,pmY-pivY]) # prime mover vector
     trlVect=np.array([pivX-trlX,pivY-trlY]) # trailer vector
     pivotMovement=np.linalg.norm(pmVect)*move*0.1 # amount the pivot moves
-    pmAngleDelta=math.asin([math.tan(math.pi/4*steer)*move*0.1,self.TruckDefinition[0]]) # the change in PM angle due to wheel steering
+    pmAngleDelta=math.asin(math.tan(math.pi/4*steer)*move*0.1/self.TruckDefinition[0]) # the change in PM angle due to wheel steering
     pm_trlSin = np.cross(trlVect,pmVect,)/np.linalg.norm(pmVect)/np.linalg.norm(trlVect) #sine of the trailer angle relative to the PM
     pm_trlAngle=math.asin(np.clip(pm_trlSin,-1,1)) #relative trailer angle.  Clip eliminate rounding errors giving arguments >1
-    trlAngleDelta=math.asin([math.sin(pm_trlAngle)*move*0.1,self.TruckDefinition[2]]) # the change in trailer angle
+    trlAngleDelta=math.asin(math.sin(pm_trlAngle)*move*0.1/self.TruckDefinition[2]) # the change in trailer angle
     
     # move the pivot point
     pmUnitVector = pmVect/np.linalg.norm(pmVect)
