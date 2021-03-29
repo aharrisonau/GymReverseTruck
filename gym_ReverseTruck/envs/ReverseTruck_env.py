@@ -47,11 +47,11 @@ class ReverseTruckEnv(gym.Env):
     self.observation_space = spaces.Box(low=np.array([-inf,0.0,-inf,0.0,-inf,0.0]),
                                         high=np.array([inf,inf,inf,inf,inf,inf]))
     
-  def 2D_Vector_Rotation(self,2D_Vector,rotationAngle):
+  def _2D_Vector_Rotation(self,_2D_Vector,rotationAngle):
     import numpy as np
     rotationMatrix = np.array([[np.cos(rotationAngle),-np.sin(rotationAngle)],
                            [np.sin(rotationAngle),np.cos(rotationAngle)]])
-    return np.matmul(rotationMatrix,2D_Vector)
+    return np.matmul(rotationMatrix,_2D_Vector)
    
   def step(self, action):
     pmX,pmY,pivX,pivY,trlX,trlY = self.state
@@ -76,11 +76,11 @@ class ReverseTruckEnv(gym.Env):
     [pivX,pivY] = [pivX,pivY] + move * 0.1 *pmUnitVector
     
     # rotate the prime mover and adjust the front location
-    pmVect = 2D_Vector_Rotation(pmVect,pmAngleDelta)
+    pmVect = _2D_Vector_Rotation(pmVect,pmAngleDelta)
     [pmX,pmY] = [pivX,pivY] + pmVect
     
     # rotate the trailer and adjust its back location
-    trlVect = 2D_Vector_Rotation(trlVect,trlAngleDelta)
+    trlVect = _2D_Vector_Rotation(trlVect,trlAngleDelta)
     [trlX,trlY] = [pivX,pivY] - trlVect
     self.state = pmX,pmY,pivX,pivY,trlX,trlY
 
