@@ -65,11 +65,11 @@ class ReverseTruckEnv(gym.Env):
     
     # rotate the trailer (--and adjust its back location-- not needed)
     pm_trlAngle= pmAng - trlAng #relative trailer angle.
-    trlAngleDelta=math.asin([math.sin(pm_trlAngle)*move*0.1,TruckDefinition[2]]) # the change in trailer angle  
+    trlAngleDelta=math.asin([math.sin(pm_trlAngle)*move*0.1,self.TruckDefinition[2]]) # the change in trailer angle  
     trlAng = trlAng + trlAngleDelta
     
     # rotate the prime mover (--and adjust the front location-- not needed)
-    pmAngleDelta=math.asin([math.tan(pi/4*steer)*move*moveBasis,TruckDefinition[0]]) # the change in PM angle due to wheel steering
+    pmAngleDelta=math.asin([math.tan(pi/4*steer)*move*moveBasis,self.TruckDefinition[0]]) # the change in PM angle due to wheel steering
     pmAng = pmAng + pmAngleDelta   
 
 
