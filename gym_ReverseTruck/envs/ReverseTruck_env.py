@@ -15,10 +15,8 @@ class ReverseTruckEnv(gym.Env):
     The three variables passed to define the environment are;
     TruckDefinition = a four valued floating point vector with;
       [PMLength, PMWidth, TrlLength, TrlWidth]
-    StartPosition = Starting Obervation, a 3x2 np array;
-      ( [PMFrontX,PMFrontY],
-        [PivotX,PivotY],
-        [TrlBackX,TrlBackY])
+    StartPosition = Starting Obervation, a np array;
+      ( [PivotX, PivotY, PMAngle, TrlAngle])
     Obstacles = a dictionary of obstacles in the form of;
       {'Obstacle':[X,Y]}
 
@@ -32,63 +30,61 @@ class ReverseTruckEnv(gym.Env):
     - Steering(-1.0 = full right, 1.0 = full left) - full lock will be 45 deg on steering
 
     Observation Space will be;
-    - PrimeMoverX = (-oo,oo)
-    - PrimeMoverY = [0,oo)
-    - PivotX = (-oo,oo)
-    - PivotY = [0,oo)
-    - TrailerBackX = (-oo,oo)
-    - TrailerBackY = [0,oo)
+    - PivotX = [0,oo)
+    - PivotY = (-oo,oo)
+    - PrimeMover Angle = (-oo,oo)
+    - Trailer Angle = (-oo,oo)
 
     """
     self.action_space = spaces.Box(low=np.array([-1.0,-1.0]),
                                    high=np.array([1.0,1.0]))
     
     inf=np.inf
-    self.observation_space = spaces.Box(low=np.array([-inf,0.0,-inf,0.0,-inf,0.0]),
-                                        high=np.array([inf,inf,inf,inf,inf,inf]))
-    
-  def _2D_Vector_Rotation(self,_2D_Vector,rotationAngle):
-    import numpy as np
-    rotationMatrix = np.array([[np.cos(rotationAngle),-np.sin(rotationAngle)],
-                           [np.sin(rotationAngle),np.cos(rotationAngle)]])
-    return np.matmul(rotationMatrix,_2D_Vector)
-   
+    self.observation_space = spaces.Box(low=np.array([0.0,-inf,-inf,-inf]),
+                                        high=np.array([inf,inf,inf,inf]))
+
   def step(self, action):
-    pmX,pmY,pivX,pivY,trlX,trlY = self.state
+    import cmath
+    import math
+    pi = math.pi
+    moveBasis = 0.1  # meters the Prime mover moves for action of +1
+
+    pivX,pivY,pmAng,trlAng = self.state
     move,steer = action
     """
     in each step, 
-    - the prime mover will go back 0.1m (at the pivot)
+    - the prime mover will go back moveBasis (at the pivot)
     - the prime mover will rotate (front relative to pivot)
-    - the trailer back will rotate due to its relative angle
+    - the trailer will rotate due to its relative angle
     """
 
-    pmVect=np.array([pmX-pivX,pmY-pivY]) # prime mover vector
-    trlVect=np.array([pivX-trlX,pivY-trlY]) # trailer vector
-    pivotMovement=np.linalg.norm(pmVect)*move*0.1 # amount the pivot moves
-    pmAngleDelta=math.asin(math.tan(math.pi/4*steer)*move*0.1/self.TruckDefinition[0]) # the change in PM angle due to wheel steering
-    pm_trlSin = np.cross(trlVect,pmVect,)/np.linalg.norm(pmVect)/np.linalg.norm(trlVect) #sine of the trailer angle relative to the PM
-    pm_trlAngle=math.asin(np.clip(pm_trlSin,-1,1)) #relative trailer angle.  Clip eliminate rounding errors giving arguments >1
-    trlAngleDelta=math.asin(math.sin(pm_trlAngle)*move*0.1/self.TruckDefinition[2]) # the change in trailer angle
     
     # move the pivot point
-    pmUnitVector = pmVect/np.linalg.norm(pmVect)
-    [pivX,pivY] = [pivX,pivY] + move * 0.1 *pmUnitVector
+    pmUnitVector = [cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag]
+    [pivX,pivY] = [pivX,pivY] + move * moveBasis * pmUnitVector
     
-    # rotate the prime mover and adjust the front location
-    pmVect = self._2D_Vector_Rotation(pmVect,pmAngleDelta)
-    [pmX,pmY] = [pivX,pivY] + pmVect
+    # rotate the trailer (--and adjust its back location-- not needed)
+    pm_trlAngle= pmAng - trlAng #relative trailer angle.
+    trlAngleDelta=math.asin([math.sin(pm_trlAngle)*move*0.1,TruckDefinition[2]]) # the change in trailer angle  
+    trlAng = trlAng + trlAngleDelta
     
-    # rotate the trailer and adjust its back location
-    trlVect = self._2D_Vector_Rotation(trlVect,trlAngleDelta)
-    [trlX,trlY] = [pivX,pivY] - trlVect
-    self.state = pmX,pmY,pivX,pivY,trlX,trlY
+    # rotate the prime mover (--and adjust the front location-- not needed)
+    pmAngleDelta=math.asin([math.tan(pi/4*steer)*move*moveBasis,TruckDefinition[0]]) # the change in PM angle due to wheel steering
+    pmAng = pmAng + pmAngleDelta   
 
-    done = False
 
-    reward = 0.0
+    self.state = [pivX,pivY,pmAng,trlAng]
 
-    return np.array(self.state), reward, done, {}
+    if abs(pivX - 0) <= 0.5 and \
+              abs(pivY - TruckDefinition[2] <= 0.5 and \
+              abs(trlAng) <= 0.174:  # trailer within 10deg of straight:
+      reward = 1.0
+    else:
+      reward = 0.0
+                  
+    done = reward == 1.0
+                  
+    return np.array(self.state), reward, done, {}  
 
   def reset(self):
     self.state = self.StartPosition.flatten()
