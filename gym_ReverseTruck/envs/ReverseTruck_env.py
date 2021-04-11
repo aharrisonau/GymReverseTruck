@@ -60,7 +60,7 @@ class ReverseTruckEnv(gym.Env):
 
     
     # move the pivot point
-    pmUnitVector = [cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag]
+    pmUnitVector = np.array([cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag])
     [pivX,pivY] = [pivX,pivY] + move * moveBasis * pmUnitVector
     
     # rotate the trailer (--and adjust its back location-- not needed)
