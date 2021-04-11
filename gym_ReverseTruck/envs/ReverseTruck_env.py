@@ -77,7 +77,7 @@ class ReverseTruckEnv(gym.Env):
 
     if abs(pivX - 0) <= 0.5 and \
               abs(pivY - TruckDefinition[2] <= 0.5 and \
-              abs(trlAng) <= 0.174:  # trailer within 10deg of straight:
+              abs(trlAng) <= 0.174  # trailer within 10deg of straight
       reward = 1.0
     else:
       reward = 0.0
