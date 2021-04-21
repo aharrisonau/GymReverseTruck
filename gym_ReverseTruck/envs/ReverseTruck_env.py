@@ -89,6 +89,10 @@ class ReverseTruckEnv(gym.Env):
   def reset(self):
     self.state = self.StartPosition.flatten()
     return np.array(self.state)
+  
+  def setState(self,state):
+    self.state = state
+    return np.array(self.state)
 
   def render(self, mode='human'):
     print(self.state)
