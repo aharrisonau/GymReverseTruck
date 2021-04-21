@@ -47,7 +47,7 @@ class ReverseTruckEnv(gym.Env):
     import cmath
     import math
     pi = math.pi
-    moveBasis = 0.1  # meters the Prime mover moves for action of +1
+    moveBasis = 1.0  # meters the Prime mover moves for action of +1
 
     pivX,pivY,pmAng,trlAng = self.state
     move,steer = action
