@@ -9,7 +9,7 @@ from gym.utils import seeding
 class ReverseTruckEnv(gym.Env):
   metadata = {'render.modes': ['human']}
 
-  def __init__(self,TruckDefinition,StartPosition,Obstacles):
+  def __init__(self,TruckDefinition,StartPosition,MoveDistance,Obstacles):
     super(ReverseTruckEnv,self).__init__()
     """
     The three variables passed to define the environment are;
@@ -17,12 +17,15 @@ class ReverseTruckEnv(gym.Env):
       [PMLength, PMWidth, TrlLength, TrlWidth]
     StartPosition = Starting Obervation, a np array;
       ( [PivotX, PivotY, PMAngle, TrlAngle])
+    MoveDistance = the maximum distance the truck moves in one step (m)
+      (0.0)
     Obstacles = a dictionary of obstacles in the form of;
       {'Obstacle':[X,Y]}
 
     """
     self.TruckDefinition = TruckDefinition
     self.StartPosition = StartPosition
+    self.MoveDistance = MoveDistance
     self.Obstacles = Obstacles
     """
     Action Space will include;
@@ -47,30 +50,36 @@ class ReverseTruckEnv(gym.Env):
     import cmath
     import math
     pi = math.pi
-    moveBasis = 1.0  # meters the Prime mover moves for action of +1
+    moveBasis = 0.1  # this is the incremental step in the movement
 
     pivX,pivY,pmAng,trlAng = self.state
     move,steer = action
+    moveSteps = int(self.MoveDistance*abs(move)/moveBasis)
     """
+    The larger move of the truck will be by iteration
     in each step, 
     - the prime mover will go back moveBasis (at the pivot)
     - the prime mover will rotate (front relative to pivot)
     - the trailer will rotate due to its relative angle
+
+    Repeat this moveSteps times
     """
 
     
-    # move the pivot point
-    pmUnitVector = np.array([cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag])
-    [pivX,pivY] = [pivX,pivY] + move * moveBasis * pmUnitVector
+    for i = range(moveSteps):
+      ##
+      # move the pivot point
+      pmUnitVector = np.array([cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag])
+      [pivX,pivY] = [pivX,pivY] + move * moveBasis * pmUnitVector
     
-    # rotate the trailer (--and adjust its back location-- not needed)
-    pm_trlAngle= pmAng - trlAng #relative trailer angle.
-    trlAngleDelta=math.asin(math.sin(pm_trlAngle)*move*0.1/self.TruckDefinition[2]) # the change in trailer angle  
-    trlAng = trlAng + trlAngleDelta
+      # rotate the trailer (--and adjust its back location-- not needed)
+      pm_trlAngle= pmAng - trlAng #relative trailer angle.
+      trlAngleDelta=math.asin(math.sin(pm_trlAngle)*move*0.1/self.TruckDefinition[2]) # the change in trailer angle  
+      trlAng = trlAng + trlAngleDelta
     
-    # rotate the prime mover (--and adjust the front location-- not needed)
-    pmAngleDelta=math.asin(math.tan(pi/4*steer)*move*moveBasis/self.TruckDefinition[0]) # the change in PM angle due to wheel steering
-    pmAng = pmAng + pmAngleDelta   
+      # rotate the prime mover (--and adjust the front location-- not needed)
+      pmAngleDelta=math.asin(math.tan(pi/4*steer)*move*moveBasis/self.TruckDefinition[0]) # the change in PM angle due to wheel steering
+      pmAng = pmAng + pmAngleDelta   
 
 
     self.state = [pivX,pivY,pmAng,trlAng]
