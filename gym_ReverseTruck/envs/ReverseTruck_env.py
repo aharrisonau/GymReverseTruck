@@ -5,6 +5,8 @@ import math as math
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
+import math
+pi = math.pi
 
 class ReverseTruckEnv(gym.Env):
   metadata = {'render.modes': ['human']}
@@ -75,11 +77,11 @@ class ReverseTruckEnv(gym.Env):
       # rotate the trailer (--and adjust its back location-- not needed)
       pm_trlAngle= pmAng - trlAng #relative trailer angle.
       trlAngleDelta=math.asin(math.sin(pm_trlAngle)*move*0.1/self.TruckDefinition[2]) # the change in trailer angle  
-      trlAng = trlAng + trlAngleDelta
+      trlAng = (trlAng + trlAngleDelta) % (2*pi)
     
       # rotate the prime mover (--and adjust the front location-- not needed)
       pmAngleDelta=math.asin(math.tan(pi/4*steer)*move*moveBasis/self.TruckDefinition[0]) # the change in PM angle due to wheel steering
-      pmAng = pmAng + pmAngleDelta   
+      pmAng = (pmAng + pmAngleDelta) % (2*pi) 
 
 
     self.state = [pivX,pivY,pmAng,trlAng]
