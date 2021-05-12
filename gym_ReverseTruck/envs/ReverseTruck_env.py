@@ -66,7 +66,7 @@ class ReverseTruckEnv(gym.Env):
     """
 
     
-    for i = range(moveSteps):
+    for i in range(moveSteps):
       ##
       # move the pivot point
       pmUnitVector = np.array([cmath.rect(1,pmAng).real,cmath.rect(1,pmAng).imag])
