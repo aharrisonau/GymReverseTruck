@@ -86,14 +86,20 @@ class ReverseTruckEnv(gym.Env):
 
     self.state = [pivX,pivY,pmAng,trlAng]
 
-    if abs(pivX - self.TruckDefinition[2]) <= 0.5 and \
-              abs(pivY - 0) <= 0.5 and \
-              abs(trlAng) <= 0.174 : # trailer within 10deg of straight
+    if abs(pivX - self.TruckDefinition[2]) <= 1.0 and \
+              abs(pivY - 0) <= 1.0 and \
+              abs(trlAng) <= 0.348 : # trailer within 20deg of straight
       reward = 1.0
     else:
       reward = 0.0
                   
     done = reward == 1.0
+    
+    if not 0.0 <= pivX <= 30.0:
+      done = True
+      
+    if not -10.0 <= pivY <= 30.0:
+      done = True
                   
     return np.array(self.state), reward, done, {}  
 
